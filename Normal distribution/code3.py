@@ -8,7 +8,7 @@ import seaborn as sns
 population = np.random.normal(loc=50, scale=5, size=100000)
 
 # Function to sample, compute SE, and CI
-def analyze_sample(sample_size, num_samples=10):
+def analyze_sample(sample_size, num_samples=10, z_critical=1.96):
     means = []
     cis = []
     samples = []  # Store samples for histogram
@@ -22,8 +22,7 @@ def analyze_sample(sample_size, num_samples=10):
         sample_sd = np.std(sample, ddof=1)  # Sample standard deviation
         sample_se = sample_sd / np.sqrt(sample_size)  # Standard error
         
-        # Compute 95% CI
-        z_critical = 1.96  # Z-score for 95% confidence level
+        # Compute CI
         ci_lower = sample_mean - z_critical * sample_se
         ci_upper = sample_mean + z_critical * sample_se
         
@@ -36,12 +35,21 @@ def analyze_sample(sample_size, num_samples=10):
     
     return means, cis, ci_exclude_count, samples
 
-# Step 2: Run for different sample sizes with multiple samples
-sample_sizes = [500, 50, 10]  # Large, medium, and small samples
-num_samples = 100  # Number of repeated samplings
-results = {size: analyze_sample(size, num_samples) for size in sample_sizes}
+# Step 2: Take user input for sample sizes and number of samples
+sample_sizes = list(map(int, input("Enter up to 4 sample sizes separated by commas (e.g., 500,50,10): ").split(',')))
+if len(sample_sizes) > 4:
+    sample_sizes = sample_sizes[:4]
 
-# Step 3: Smoothed Density Plots for Sample Distributions with Population Density Curve
+num_samples = int(input("Enter the number of samples to be taken: "))
+
+# Step 3: Take user input for confidence level
+confidence_level = float(input("Enter the confidence level (e.g., 0.95): "))
+z_critical = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+
+# Step 4: Run for different sample sizes with multiple samples
+results = {size: analyze_sample(size, num_samples, z_critical) for size in sample_sizes}
+
+# Step 5: Smoothed Density Plots for Sample Distributions with Population Density Curve
 fig, axes = plt.subplots(1, len(sample_sizes), figsize=(18, 6), sharey=True)
 colors = sns.color_palette("bright", num_samples)  # Use distinct colors for each sample
 
@@ -63,7 +71,7 @@ for i, size in enumerate(sample_sizes):
 plt.tight_layout()
 plt.show()
 
-# Step 4: Visualization of Sample Means and Confidence Intervals
+# Step 6: Visualization of Sample Means and Confidence Intervals
 fig, axes = plt.subplots(1, len(sample_sizes), figsize=(18, 6), sharey=True)
 colors = ['blue', 'red', 'green']
 
@@ -77,7 +85,7 @@ for i, size in enumerate(sample_sizes):
         axes[i].scatter(means[j], y_positions[j], color=colors[i], label=f"Sample Mean (n={size})" if j == 0 else "")
     
     axes[i].axvline(np.mean(population), color='black', linestyle='dashed', label="Population Mean")
-    axes[i].set_title(f"Sample Means with 95% Confidence Intervals (n={size})\nCIs not containing Population Mean: {ci_exclude_count}/{num_samples}")
+    axes[i].set_title(f"Sample Means with {confidence_level*100}% Confidence Intervals (n={size})\nCIs not containing Population Mean: {ci_exclude_count}/{num_samples}")
     axes[i].set_xlabel("Mean Value")
     axes[i].set_ylabel("Sample Number")
     axes[i].legend()
