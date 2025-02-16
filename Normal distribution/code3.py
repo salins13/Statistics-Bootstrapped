@@ -39,6 +39,8 @@ def analyze_sample(sample_size, num_samples=10, z_critical=1.96):
 sample_sizes = list(map(int, input("Enter up to 4 sample sizes separated by commas (e.g., 500,50,10): ").split(',')))
 if len(sample_sizes) > 4:
     sample_sizes = sample_sizes[:4]
+elif len(sample_sizes) < 1:
+    raise ValueError("You must enter at least one sample size.")
 
 num_samples = int(input("Enter the number of samples to be taken: "))
 
@@ -51,13 +53,15 @@ results = {size: analyze_sample(size, num_samples, z_critical) for size in sampl
 
 # Step 5: Smoothed Density Plots for Sample Distributions with Population Density Curve
 fig, axes = plt.subplots(1, len(sample_sizes), figsize=(18, 6), sharey=True)
+if len(sample_sizes) == 1:
+    axes = [axes]  # Ensure axes is always a list
 colors = sns.color_palette("bright", num_samples)  # Use distinct colors for each sample
 
 for i, size in enumerate(sample_sizes):
     _, _, _, samples = results[size]
     
     for j, sample in enumerate(samples):
-        sns.kdeplot(sample, color=colors[j], alpha=0.2, fill=True, ax=axes[i])
+        sns.kdeplot(sample, color=colors[j % len(colors)], alpha=0.2, fill=True, ax=axes[i])
     
     # Plot population density curve
     sns.kdeplot(population, color='black', linewidth=2, label="Population Density", ax=axes[i])
@@ -73,7 +77,9 @@ plt.show()
 
 # Step 6: Visualization of Sample Means and Confidence Intervals
 fig, axes = plt.subplots(1, len(sample_sizes), figsize=(18, 6), sharey=True)
-colors = ['blue', 'red', 'green']
+if len(sample_sizes) == 1:
+    axes = [axes]  # Ensure axes is always a list
+colors = sns.color_palette("bright", len(sample_sizes))  # Generate enough colors for sample sizes
 
 for i, size in enumerate(sample_sizes):
     means, cis, ci_exclude_count, _ = results[size]
