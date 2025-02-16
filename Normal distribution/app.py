@@ -5,6 +5,8 @@ import seaborn as sns
 import scipy.stats as stats
 
 
+
+
 # Generate a population with mean=50, SD=5, size=100,000
 population = np.random.normal(loc=50, scale=5, size=100000)
 
